@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<style>
+    /* Add some padding to the top of the content */
+    .container-fluid {
+        padding-top: 20px;
+    }
+
+    /* Style the profile sidebar */
+    .bg-light {
+        border-right: 1px solid #ddd;
+        padding: 15px;
+    }
+
+    /* Style the profile picture */
+    .rounded-circle {
+        border: 2px solid #007bff;
+    }
+
+    /* Style the buttons */
+    .btn-sm {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    /* Style the profile info section */
+    .profile-info {
+        margin-top: 20px;
+    }
+
+    /* Additional spacing for the post entries */
+    .post-entry-1 {
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 5px;
+        transition: box-shadow 0.3s;
+    }
+
+    .post-entry-1:hover {
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Sidebar styling */
+    .sidebar {
+        width: 250px; /* Adjust the sidebar width as needed */
+    }
+
+    /* Main content styling */
+    .main-content {
+        padding-left: 30px; /* Space between sidebar and content */
+        padding-right: 15px; /* Add some right padding */
+    }
+
+    /* Ensure the row for posts does not overlap */
+    .post-row {
+        margin-top: 20px; /* Add some space above the posts */
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar for Profile -->
+        <div class="col-md-3 sidebar bg-light">
+            <div class="profile-header text-center">
+                {% if profile.profile_picture %}
+                    <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" class="img-fluid rounded-circle" style="width: 150px; height: 150px;">
+                {% else %}
+                    <img src="{% static 'path/to/default_profile_pic.jpg' %}" alt="Default Picture" class="img-fluid rounded-circle" style="width: 150px; height: 150px;">
+                {% endif %}
+                <h2>{{ profile.user.username }}</h2>
+                <p>Followers: {{ follower_count }}</p>
+                <p>Following: {{ following_count }}</p>
+
+                {% if request.user.is_authenticated %}
+                    <form action="{% url 'toggle_follow' profile.user.id %}" method="POST">
+                        {% csrf_token %}
+                        {% if is_following %}
+                            <button type="submit" class="btn btn-danger btn-sm">Unfollow</button>
+                        {% else %}
+                            <button type="submit" class="btn btn-primary btn-sm">Follow</button>
+                        {% endif %}
+                    </form>
+                {% endif %}
+            </div>
+
+            <div class="profile-info">
+                <h4>Bio</h4>
+                <p>{{ profile.bio }}</p>
+                <h4>Email</h4>
+                <p>{{ profile.user.email }}</p>
+                <h4>Phone Number</h4>
+                <p>{{ profile.phone_number }}</p>
+
+                {% if request.user == profile.user %}
+                    <a href="{% url 'edit_profile' %}" class="btn btn-primary btn-sm mt-2">Edit Profile</a>
+                    <form action="{% url 'delete_profile' %}" method="POST" class="mt-2">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Delete Profile</button>
+                    </form>
+                {% endif %}
+
+                <!-- Friendship Management -->
+                <div class="friendship-management">
+                   <!-- Friendship Management -->
+                    
+{% if request.user == profile.user %}
+<p>You cannot add yourself as a friend.</p>
+{% elif request.user in profile.user.friends.all %}
+<form action="{% url 'remove_friend' profile.user.id %}" method="POST" class="mt-2">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-outline-danger btn-sm">Unfriend</button>
+</form>
+{% else %}
+<form action="{% url 'add_friend' profile.user.id %}" method="POST" class="mt-2">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-outline-primary btn-sm">Add Friend</button>
+</form>
+{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="col-md-9 main-content">
+            <h1>Posts of <strong>{{ profile.user.username }}</strong></h1>
+            <div class="row post-row">
+                {% for post in user_posts %}
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="post-entry-1">
+                            <a href="{% url 'post_detail' post.pk %}">
+                                {% if post.image1 %}
+                                    <img src="{{ post.image1.url }}" width="350" height="350" alt="Post Image" class="img-fluid">
+                                {% else %}
+                                    <img src="{% static 'assets/img/default-post-image.jpg' %}" width="350" height="350" alt="Default Image" class="img-fluid">
+                                {% endif %}
+                            </a>
+                            <div class="post-meta">
+                                <span class="date">{{ post.categories.all|join:", " }}</span> 
+                                <span class="mx-1">&bullet;</span> 
+                                <span>{{ post.date_posted }}</span>
+                                <span>Likes: {{ post.likes.count }}</span>
+                                <span>Comments: {{ post.comments.count }}</span>
+                            </div>
+                            <h2><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h2>
+
+                            <!-- Edit and Delete buttons -->
+                            {% if request.user == post.author %}
+                                <a href="{% url 'edit_post' post.pk %}" class="btn btn-primary btn-sm">Edit</a>
+                                <form action="{% url 'delete_post' post.pk %}" method="POST" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).on('submit', 'form', function(event) {
+        event.preventDefault(); // Prevent the form from submitting normally
+        const form = $(this);
+        const url = form.attr('action');
+
+        $.ajax({
+            type: form.attr('method'),
+            url: url,
+            data: form.serialize(),
+            success: function(response) {
+                // Handle successful follow/unfollow
+                alert(response.message);
+                // Optionally, update the button text or style
+                location.reload(); // Reload to reflect changes
+            },
+            error: function(response) {
+                // Handle error
+                alert(response.responseJSON.message);
+            }
+        });
+    });
+</script>
+
+{% endblock %}

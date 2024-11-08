@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% block content %}
+<style>
+  .sidebar {
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+
+  }
+
+  .user-profile {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .suggested-profiles h3 {
+    margin-top: 20px;
+  }
+
+  .suggested-profiles ul {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  .suggested-profiles li {
+    margin: 10px 0;
+  }
+
+  .button-group .btn {
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.button-group .btn:hover {
+    background-color: #0056b3;
+    color: #fff;
+}
+
+
+</style>
+
+<div class="container-fluid">
+  <div class="row">
+
+    <!-- Sidebar Section -->
+    <div class="col-lg-3 sidebar">
+      <div class="user-profile">
+          <h3>User Profile</h3>
+          {% if request.user.is_authenticated %}
+            {% if profile and profile.profile_picture %}
+              <img src="{{ profile.profile_picture.url }}" alt="{{ request.user.username }}" class="img-fluid" style="width: 50px; height: auto;">
+            {% else %}
+              <img src="{% static 'path/to/default-profile-pic.jpg' %}" alt="Default Profile Picture" class="img-fluid" style="width: 50px; height: auto;">
+            {% endif %}
+            <h4>{{ request.user.username }}</h4>
+          {% else %}
+            <p>Please <a href="{% url 'login' %}">login</a> to view your profile.</p>
+          {% endif %}
+      </div>
+      <hr>
+
+ 
+
+      <!-- Suggested Profiles Section -->
+      <div class="suggested-profiles">
+        <h3>Suggested Profiles</h3>
+        <ul class="list-unstyled">
+          {% for suggested_user in suggested_users %}
+            <li class="media p-3 mb-3 border rounded" style="background-color: #f8f9fa;">
+              <div class="text-center mr-3">
+                <a href="{% url 'profile' suggested_user.id %}">
+                  {% if suggested_user.profile_picture %}
+                    <img src="{{ suggested_user.profile_picture.url }}" alt="{{ suggested_user.profile.username }}'s profile picture"
+                      class="rounded-circle" style="width: 80px; height: 80px;">
+                  {% else %}
+                    <img src="{% static 'path/to/default-profile-pic.jpg' %}" alt="Default Profile Picture"
+                      class="rounded-circle" style="width: 80px; height: 80px;">
+                  {% endif %}
+                </a>
+
+                {% if request.user.is_authenticated %}
+                <form action="{% url 'toggle_follow' suggested_user.id %}" method="POST" class="mt-2 follow-form" data-user-id="{{ suggested_user.id }}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline-primary btn-sm follow-button">
+                      {% if request.user in suggested_user.followers.all %}
+                          Unfollow
+                      {% else %}
+                          Follow
+                      {% endif %}
+                  </button>
+              </form>
+              
+              <!-- Optional: To display a message -->
+              <div class="follow-message" style="display: none;"></div>
+              
+                {% endif %}
+              </div>
+
+              <div class="media-body align-self-center">
+                <h5 class="mt-0">
+                  <a href="{% url 'profile' suggested_user.id %}">{{ suggested_user.username }}</a>
+                </h5>
+                <p class="mb-0 text-muted">{{ suggested_user.profile.bio|truncatewords:10 }}</p>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div> <!-- End Sidebar Section -->
+
+   <!-- Main Post Column -->
+<div class="col-lg-9">
+  <section id="posts" class="posts">
+    <div class="container" data-aos="fade-up">
+      <div class="row g-5">
+        <div class="col-lg-12">
+          <div class="row g-5">
+            <!-- Main Posts -->
+            {% for post in m_posts %}
+            <div class="col-lg-4">
+              <div class="post-entry-1 lg">
+                <a href="{% url 'post_detail' post.pk %}">
+                  {% if post.image1 %}
+                  <img src="{{ post.image1.url }}" alt="{{ post.title }}" class="img-fluid">
+                  {% else %}
+                  <img src="{% static 'path/to/default-image.jpg' %}" alt="Default Image" class="img-fluid">
+                  {% endif %}
+                </a>
+                <div class="post-meta">
+                  <span class="date">{{ post.category }}</span> <span class="mx-1">&bullet;</span>
+                  <span>{{ post.date_posted }}</span><br>
+                  <span>{{ post.author.username }}</span> <br>
+                  <span class="date">
+                    {{ post.categories.all|join:", " }}
+                  </span>
+                  <span class="mx-1">&bullet;</span>
+                  <span>Likes: {{ post.total_likes_with_comments }}</span>
+                  <span>Comments: {{ post.comments.count }}</span>
+                </div>
+
+                <p class="mb-4 d-block">
+                  <!-- Preview content (truncated) -->
+                  <span id="preview-{{ post.pk }}">{{ post.content|truncatewords:6 }}</span>
+                  
+                  <!-- Full content (hidden by default) -->
+                  <span id="full-{{ post.pk }}" style="display: none;">{{ post.content }}</span>
+                  
+                  <!-- Read More/Less button -->
+                  <a href="javascript:void(0);" onclick="toggleContent({{ post.pk }});" id="toggle-btn-{{ post.pk }}">Read More</a>
+              </p>
+
+              <div class="post-meta">
+                {% if request.user.is_authenticated %}
+                    <form id="comment-form-{{ post.pk }}" method="POST" action=".">
+                        {% csrf_token %}
+                        <input name="post_pk" value="{{ post.pk }} "type="hidden">
+                        
+                        <!-- Comment Text Input -->
+                        <div class="form-group">
+                            {{ comment_form.as_p }}
+                        </div>
+                        
+                        <!-- Comment and Like/Unlike Buttons -->
+                        <div class="button-group" style="display: flex; align-items: center; gap: 10px;">
+                            <button type="submit" class="btn btn-primary">Add Comment</button>
+                            
+                            <!-- Like/Unlike Button -->
+                            {% if request.user in post.likes.all %}
+                                <a class="btn btn-outline-primary" href="{% url 'post_unlike' post.pk %}">Unlike</a>
+                            {% else %}
+                                <a class="btn btn-outline-primary" href="{% url 'post_like' post.pk %}">Like</a>
+                            {% endif %}
+                        </div>
+                    </form>
+                {% endif %}
+            </div>
+            
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div> <!-- End .row -->
+    </div>
+  </section>
+</div> <!-- End Main Post Column -->
+
+
+  </div> <!-- End .row -->
+</div> <!-- End .container-fluid -->
+<script>
+  function toggleContent(postId) {
+      const preview = document.getElementById(`preview-${postId}`);
+      const full = document.getElementById(`full-${postId}`);
+      const toggleBtn = document.getElementById(`toggle-btn-${postId}`);
+  
+      if (full.style.display === "none") {
+          preview.style.display = "none";
+          full.style.display = "inline";
+          toggleBtn.textContent = "Read Less";
+      } else {
+          preview.style.display = "inline";
+          full.style.display = "none";
+          toggleBtn.textContent = "Read More";
+      }
+  }
+  </script>
+{% if not request.COOKIES.cookie_consent %}
+<div class="cookie-banner">
+  <p>This site uses cookies to enhance your experience. By continuing to browse, you consent to our use of cookies.</p>
+  <button id="accept-cookies" class="btn btn-primary">Accept Cookies</button>
+</div>
+<script>
+  document.getElementById('accept-cookies').addEventListener('click', function() {
+      document.cookie = "cookie_consent=true; path=/";
+      this.parentElement.style.display = 'none'; // Hide banner after acceptance
+  });
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const followForms = document.querySelectorAll('.follow-form');
+
+      followForms.forEach(form => {
+          form.addEventListener('submit', function(event) {
+              event.preventDefault(); // Prevent the default form submission
+
+              const formData = new FormData(form);
+              const userId = form.getAttribute('data-user-id');
+              const url = form.getAttribute('action');
+
+              fetch(url, {
+                  method: 'POST',
+                  body: formData,
+                  headers: {
+                      'X-Requested-With': 'XMLHttpRequest', // Indicate it's an AJAX request
+                  }
+              })
+              .then(response => response.json())
+              .then(data => {
+                  // Update the button text and display message
+                  const button = form.querySelector('.follow-button');
+                  const messageDiv = document.querySelector('.follow-message');
+
+                  if (data.is_following) {
+                      button.textContent = 'Unfollow';
+                      messageDiv.textContent = data.message;
+                  } else {
+                      button.textContent = 'Follow';
+                      messageDiv.textContent = data.message;
+                  }
+
+                  // Update followers count display if needed
+                  const followersCount = data.followers_count;
+                  messageDiv.textContent += ` (${followersCount} followers)`;
+                  messageDiv.style.display = 'block'; // Show the message
+              })
+              .catch(error => {
+                  console.error('Error:', error);
+                  alert('An error occurred. Please try again.');
+              });
+          });
+      });
+  });
+</script>
+{% endif %}
+{% endblock %}

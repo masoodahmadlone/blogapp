@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container-fluid">
+    <h1>Users</h1>
+    <div class="row">
+        {% for user in users %}
+            <div class="col-md-4">
+                <div class="user-card">
+                    <h2>{{ user.username }}</h2>
+                    <p>Followers: {{ user.followers.count }}</p>
+
+                    {% if request.user.is_authenticated %}
+                    {% if request.user in user.followers.all %}
+                        <form action="{% url 'toggle_follow' user.id %}" method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Unfollow</button>
+                        </form>
+                    {% else %}
+                        <form action="{% url 'toggle_follow' user.id %}" method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary">Follow</button>
+                        </form>
+                    {% endif %}
+                {% endif %}
+                 
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <h1>Find Friends</h1>
+<div class="user-list">
+    {% for user in users %}
+        <div class="user-profile">
+            <h3>{{ user.username }}</h3>
+            <p>Status: {% if user.profile.is_online %}<span class="text-success">Online</span>{% else %}<span class="text-muted">Offline</span>{% endif %}</p>
+            <!-- Friendship Management -->
+            {% if request.user in user.friends.all %}
+                <form action="{% url 'remove_friend' user.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Unfriend</button>
+                </form>
+            {% else %}
+                <form action="{% url 'add_friend' user.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-primary btn-sm">Add Friend</button>
+                </form>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+</div>
+{% endblock %}

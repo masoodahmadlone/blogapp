@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %} 
+<!-- most_liked_posts.html -->
+
+<h2>Posts with Maximum Comments</h2>
+
+<!-- ======= Post Grid Section ======= -->
+<section id="posts" class="posts">
+  <div class="container" data-aos="fade-up">
+    <div class="row g-5">
+      <div class="col-lg-4">
+        <div class="post-entry-1 lg">
+          {% for post in m_posts|slice:"0:3" %}
+          <a href="{% url 'post_detail' post.pk %}">
+            {% if post.image_1 %}
+              <img src="{{ post.image_1.url }}" alt="Post Image" class="img-fluid">
+            {% else %}
+              <img src="{% static 'assets/img/default-post-image.jpg' %}" alt="Default Image" class="img-fluid">
+            {% endif %}
+          </a>
+          <div class="post-meta"><span class="date">{{ post.category }}</span> <span class="mx-1">&bullet;</span> <span>{{ post.date_posted }}</span></div>
+          <h2><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h2>
+          <p class="mb-4 d-block">{{ post.title }}</p>
+
+          <div class="d-flex align-items-center author">
+            <div class="photo">
+              <a href="{% url 'post_detail' post.pk %}">
+                <img src="{% static 'assets/img/person-1.jpg' %}" alt="Author Image" class="img-fluid">
+              </a>
+            </div>
+            <div class="name">
+              <h3 class="m-0 p-0">{{ post.author.username }}</h3>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <div class="row g-5">
+          <div class="col-lg-4 border-start custom-border">
+            <div class="post-entry-1">
+              {% for post in m_posts|slice:"3:6" %}
+              <a href="{% url 'post_detail' post.pk %}">
+                {% if post.image_2 %}
+                  <img src="{{ post.image_2.url }}" alt="Post Image" class="img-fluid">
+                {% else %}
+                  <img src="{% static 'assets/img/default-post-image.jpg' %}" alt="Default Image" class="img-fluid">
+                {% endif %}
+              </a>
+              <div class="post-meta"><span class="date">{{ post.category }}</span> <span class="mx-1">&bullet;</span> 
+                <span>{{ post.date_posted }}</span>
+                <span>Likes: {{ post.likes.count }}</span>
+                <span>Comments: {{ post.comments.count }}</span>
+              </div>
+              <h2><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h2>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="col-lg-4 border-start custom-border">
+            <div class="post-entry-1">
+              {% for post in m_posts|slice:"6:9" %}
+              <a href="{% url 'post_detail' post.pk %}">
+                {% if post.image_2 %}
+                  <img src="{{ post.image_2.url }}" alt="Post Image" class="img-fluid">
+                {% else %}
+                  <img src="{% static 'assets/img/default-post-image.jpg' %}" alt="Default Image" class="img-fluid">
+                {% endif %}
+              </a>
+              <div class="post-meta"><span class="date">{{ post.category }}</span> <span class="mx-1">&bullet;</span> 
+                <span>{{ post.date_posted }}</span>
+                <span>Likes: {{ post.likes.count }}</span>
+                <span>Comments: {{ post.comments.count }}</span>
+              </div>
+              <h2><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h2>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="col-lg-4 border-start custom-border">
+            <div class="post-entry-1">
+              {% for post in m_posts|slice:"9:12" %}
+              <a href="{% url 'post_detail' post.pk %}">
+                {% if post.image_2 %}
+                  <img src="{{ post.image_2.url }}" alt="Post Image" class="img-fluid">
+                {% else %}
+                  <img src="{% static 'assets/img/default-post-image.jpg' %}" alt="Default Image" class="img-fluid">
+                {% endif %}
+              </a>
+              <div class="post-meta"><span class="date">{{ post.category }}</span> <span class="mx-1">&bullet;</span> 
+                <span>{{ post.date_posted }}</span>
+                <span>Likes: {{ post.likes.count }}</span>
+                <span>Comments: {{ post.comments.count }}</span>
+              </div>
+              <h2><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h2>
+              {% endfor %}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,12 @@
+{% for comment in nested_comments %}
+  <div class="comment">
+    <p>{{ comment.comment.author }}: {{ comment.comment.content }}</p>
+    <a href="{% url 'comment_reply' comment.comment.pk %}">Reply</a>
+
+    {% if comment.replies %}
+      <div class="replies">
+        {% include "comments.html" with nested_comments=comment.replies %}
+      </div>
+    {% endif %}
+  </div>
+{% endfor %}

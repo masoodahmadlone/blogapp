@@ -1,0 +1,6 @@
+<h1>Post on {{ friend.username }}'s Profile</h1>
+<form method="POST">
+    {% csrf_token %}
+    <textarea name="content" rows="4" cols="50" placeholder="What's on your mind?"></textarea>
+    <button type="submit">Post</button>
+</form>

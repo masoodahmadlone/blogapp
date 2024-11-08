@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Notifications</h1>
+<ul>
+    {% for notification in notifications %}
+    <li>
+        <!-- Ensure no field like notification.type is directly used in templates -->
+        <a href="{{ notification.link }}">{{ notification.message }}</a>
+        <small>{{ notification.timestamp }}</small>
+    </li>
+{% endfor %}
+</ul>
+
+{% endblock %}

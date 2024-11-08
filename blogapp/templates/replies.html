@@ -1,0 +1,32 @@
+<!-- replies.html -->
+{% for reply in replies %}
+    <div class="reply" style="margin-left: 20px;">
+        <p>{{ reply.text }} - by {{ reply.author.username }}</p>
+        <a href="javascript:void(0);" onclick="setParentComment({{ reply.pk }})">Reply</a>
+
+        <!-- Likes and Like Form for Reply 
+        <p>Likes: {{ reply.likes.count }}</p>
+        <form action="{% url 'comment_like' reply.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit">Like</button>
+        </form> -->
+     
+        <!-- Nested replies (recursive inclusion) -->
+        {% if reply.replies.all %}
+            <div class="nested-replies" style="margin-left: 20px;">
+                {% include 'replies.html' with replies=reply.replies.all %}
+            </div>
+        {% endif %}
+
+        <!-- Reply Input Area for Nested Reply (Initially Hidden) -->
+        <div id="reply-form-{{ reply.pk }}" style="display:none; margin-left: 20px;">
+            <form method="post" action="{% url 'add_comment' %}">
+                {% csrf_token %}
+                <textarea name="text" placeholder="Write your reply..." required></textarea>
+                <input type="hidden" name="parent_comment_id" value="{{ reply.pk }}">
+                <input type="hidden" name="post_id" value="{{ post.id }}">
+                <button type="submit">Submit Reply</button>
+            </form>
+        </div>
+    </div>
+{% endfor %}

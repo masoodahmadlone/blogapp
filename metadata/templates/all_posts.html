@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        background-color: #f9f9f9;
+    }
+    /* Custom styles for wider layout */
+    .container-custom {
+        max-width: 1600px; /* Set the maximum width to 1600px */
+        margin: 0 auto; /* Center the container */
+        padding: 0 15px; /* Add some horizontal padding */
+    }
+
+    .post-entry-1 {
+        border: 1px solid #ddd;
+        padding: 15px;
+        background: #fff;
+        margin-bottom: 15px;
+    }
+
+    .post-entry-1 img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .post-meta {
+        margin-top: 10px;
+    }
+
+    h2 {
+        font-size: 18px;
+        margin-top: 10px;
+    }
+    
+    /* Ensuring the section uses full width of the viewport */
+    #posts {
+        width: 100%;
+        padding: 0;
+    }
+</style>
+
+<!-- ======= Post Grid Section ======= -->
+<section id="posts" class="posts">
+    <div class="container-custom" data-aos="fade-up">
+        <div class="row">
+            {% for post in posts %}
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="post-entry-1 h-100">
+                    <a href="{% url 'post_detail' post.pk %}">
+                        {% if post.image1 %}
+                            <img src="{{ post.image1.url }}" alt="Post Image" class="img-fluid">
+                        {% else %}
+                            <img src="{% static 'assets/img/default-post-image.jpg' %}" alt="Default Image" class="img-fluid">
+                        {% endif %}
+                    </a>
+                    <div class="post-meta">
+                        <span class="date">{{ post.categories.all|join:", " }}</span>
+                        <span>{{ post.author.username }}</span> 
+                        <span class="mx-1">&bullet;</span>
+                        <span>{{ post.date_posted }}</span>
+                        <span>Likes: {{ post.total_likes_with_comments }}</span>
+                        <span>Comments: {{ post.comments.count }}</span>
+                    </div>
+                    <h2><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h2>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie Logs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            color: #343a40;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #dee2e6;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #d1ecf1;
+        }
+        .cookie-message {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e2e3e5;
+            border-left: 5px solid #6c757d;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            document.cookie = "test_cookie1=value1; path=/";
+            document.cookie = "test_cookie2=value2; path=/";
+        });
+    </script>
+</head>
+<body>
+    <h1>Collected Cookies</h1>
+    <div class="cookie-message">
+        <strong>Note:</strong> Test cookies have been set for demonstration purposes.
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Cookie Name</th>
+                <th>Cookie Value</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cookie in cookies %}
+            <tr>
+                <td>
+                    {% if cookie.user %}
+                        {{ cookie.user.username }}
+                    {% else %}
+                        Anonymous
+                    {% endif %}
+                </td>
+                <td>{{ cookie.cookie_name }}</td>
+                <td>{{ cookie.cookie_value }}</td>
+                <td>{{ cookie.timestamp }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center;">No cookies collected yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

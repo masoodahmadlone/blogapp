@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>Notification Detail</h1>
+  <p>
+    <strong>Sender:</strong> {{ notification.sender.username }}<br>
+    <strong>Post:</strong> {{ notification.post.title }}<br>
+    <strong>Type:</strong> {{ notification.type }}<br>
+    <strong>Message:</strong> {{ notification.message }}<br>
+    <strong>Timestamp:</strong> {{ notification.timestamp }}
+  </p>
+  <a href="{% url 'mark_notification_as_read' notification.pk %}">Mark as Read</a>
+
+
+{% endblock %}

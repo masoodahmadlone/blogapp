@@ -1,0 +1,9 @@
+<h1>Your Friends</h1>
+<ul>
+    {% for friend in friends %}
+        <li>
+            {{ friend.username }} 
+            <a href="{% url 'post_on_friend_profile' friend.id %}">Post on Profile</a>
+        </li>
+    {% endfor %}
+</ul>

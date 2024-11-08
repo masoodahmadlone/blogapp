@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<style>
+  /* Slider Container */
+  .slider {
+      position: relative;
+      width: 100%;
+      max-width: 800px;
+      margin: auto;
+      overflow: hidden;
+      border-radius: 10px;
+      box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Slider Wrapper for Transition */
+  .slider-wrapper {
+      display: flex;
+      transition: transform 0.5s ease-in-out;
+  }
+  
+  /* Individual Slide */
+  .slide {
+      min-width: 100%;
+      box-sizing: border-box;
+  }
+  
+  /* Image in Slide */
+  .slide img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+  }
+  
+  /* Navigation Arrows */
+  .arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: rgba(0, 0, 0, 0.5);
+      border: none;
+      color: #fff;
+      font-size: 30px;
+      padding: 15px;
+      cursor: pointer;
+      border-radius: 50%;
+      z-index: 10;
+      transition: background-color 0.3s;
+  }
+  
+  /* Hover Effect for Arrows */
+  .arrow:hover {
+      background-color: rgba(0, 0, 0, 0.8);
+  }
+  
+  /* Left Arrow Position */
+  .left-arrow {
+      left: 15px;
+  }
+  
+  /* Right Arrow Position */
+  .right-arrow {
+      right: 15px;
+  }
+  
+  /* Arrow Focus Outline Removal */
+  .arrow:focus {
+      outline: none;
+  }
+
+  .comment {
+    border-left: 2px solid #ddd;
+    padding-left: 10px;
+    margin-bottom: 10px;
+}
+
+.reply {
+    border-left: 2px solid #eee;
+    padding-left: 10px;
+    margin-top: 5px;
+}
+
+.nested-replies {
+    margin-left: 20px;
+}
+
+.comments-section {
+    font-family: Arial, sans-serif;
+    margin-top: 20px;
+  }
+  
+  .comment-block {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+  }
+  
+  .parent-comment {
+    background-color: #e3f2fd;
+    border-radius: 15px;
+    padding: 10px;
+    font-weight: bold;
+    font-size: 1.1em;
+    position: relative;
+  }
+  
+  .parent-comment:before {
+    content: "";
+    position: absolute;
+    left: -10px;
+    top: 10px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 10px 10px 10px 0;
+    border-color: transparent #e3f2fd transparent transparent;
+  }
+  
+  .replies {
+    margin-left: 20px;
+    padding-left: 15px;
+    border-left: 2px solid #d1e3f0;
+    margin-top: 10px;
+  }
+  
+  .child-comment {
+    background-color: #f1f8e9;
+    border-radius: 10px;
+    padding: 8px;
+    margin: 5px 0;
+    position: relative;
+  }
+  
+  .child-comment:before {
+    content: "";
+    position: absolute;
+    left: -10px;
+    top: 10px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 10px 10px 10px 0;
+    border-color: transparent #f1f8e9 transparent transparent;
+  }
+  
+  a {
+    color: #1e88e5;
+    text-decoration: none;
+    font-size: 0.9em;
+  }
+  
+  a:hover {
+    text-decoration: underline;
+  }
+  
+</style>
+
+<section class="single-post-content">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-9 post-content" data-aos="fade-up">
+
+        <!-- Single Post Content -->
+        <div class="single-post" id="post-{{ post.pk }}">
+          <div class="post-meta">
+            <a href='{{ categories }}'><span class="date">{{ post.categories.all|join:", " }}</span></a>
+            <span class="mx-1">&bullet;</span>
+            <span>{{ post.author.username }}</span>
+            <span>{{ post.created_date }}</span>
+            <span class="mx-1">&bullet;</span> 
+            <span>Likes: {{ post.total_likes_with_comments }}</span>
+            <span class="mx-1">&bullet;</span> 
+            <span>Comments: {{ post.comments.count }}</span>
+            <span class="mx-1">&bullet;</span> 
+            <span>Followers: {{ profile.follower_count.count }}</span>
+            <span class="mx-1">&bullet;</span> 
+            <span>Following: {{ profile.following_count.count }}</span>
+          </div>
+        
+          <h1 class="mb-5">{{ post.title }}</h1>
+          <p><span class="firstcharacter">B</span>{{ post.content }}</p>
+
+          <!-- Image Slider -->
+          <div class="slider">
+            <div class="slider-wrapper">
+                {% for image_url in image_urls %}
+                    <div class="slide">
+                        <img src="{{ image_url }}" alt="Post Image">
+                    </div>
+                {% endfor %}
+            </div>
+            <button class="arrow left-arrow" id="prevBtn">&#10094;</button>
+            <button class="arrow right-arrow" id="nextBtn">&#10095;</button>
+          </div>
+          <!-- Image Slider End -->
+
+          <!-- Like Button -->
+          {% if request.user.is_authenticated %}
+              {% if request.user in post.likes.all %}
+                  <a class="btn btn-success" href="{% url 'post_unlike' post.pk %}">Unlike</a>
+              {% else %}
+                  <a class="btn btn-success" href="{% url 'post_like' post.pk %}">Like</a>
+              {% endif %}
+          {% endif %}
+
+          <!-- Follow/Unfollow Button -->
+          {% if request.user.is_authenticated %}
+              <div class="follow-unfollow-button">
+                  {% if is_following %}
+                      <form action="{% url 'toggle_follow' post.author.id %}" method="POST" style="display: inline;">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-danger btn-sm">Unfollow</button>
+                      </form>
+                  {% else %}
+                      <form action="{% url 'toggle_follow' post.author.id %}" method="POST" style="display: inline;">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-primary btn-sm">Follow</button>
+                      </form>
+                  {% endif %}
+              </div>
+          {% endif %}
+          
+<!-- Comments Section -->
+<h2>Comments</h2>
+<div class="comments-section">
+  {% for comment in comments %}
+  <div class="comment-block">
+    <!-- Parent Comment -->
+    <div class="parent-comment">
+      <p><strong>{{ comment.comment.text }}</strong> - by {{ comment.comment.author.username }}</p>
+      <a href="{% url 'comment_reply' comment.comment.pk %}" onclick="setParentComment({{ comment.comment.pk }})">Reply</a>
+    
+
+      <p>Likes: {{ comment.comment.likes.count }}</p>
+                <form action="{% url 'comment_like' comment.comment.pk %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit">Like</button>
+                </form>
+    </div>
+
+    <!-- Child Comments -->
+    {% if comment.replies %}
+    <div class="replies">
+      {% for reply in comment.replies %}
+      <div class="child-comment">
+        <p>{{ reply.comment.text }} - by {{ reply.comment.author.username }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<h3>Add a comment</h3>
+<form method="post">
+  {% csrf_token %}
+  {{ comment_form.as_p }}
+  <input type="hidden" id="parent_comment" name="parent_comment" value="0">
+  <button type="submit">Submit</button>
+</form>
+
+<script>
+  function setParentComment(commentId) {
+    document.getElementById('parent_comment').value = commentId;
+  }
+</script>
+
+<script>
+  function setParentComment(commentId) {
+    // Hide all reply forms
+    const allForms = document.querySelectorAll('[id^="reply-form-"]');
+    allForms.forEach(form => form.style.display = 'none');
+
+    // Show the reply form for the selected comment
+    const replyForm = document.getElementById(`reply-form-${commentId}`);
+    if (replyForm) {
+        replyForm.style.display = replyForm.style.display === 'block' ? 'none' : 'block'; // Toggle visibility
+    }
+}
+</script>
+        
+          <!-- Share on Social Media -->
+          <div class="share-button" id="shareButton">
+            Share Post
+          </div>
+        
+          <!-- Social Media Icons Popup -->
+          <div class="social-icons-popup" id="socialIconsPopup" style="display: none;">
+            <a href="#" id="facebookShare"><img src="{% static 'facebook-icon.png' %}" alt="Facebook"></a>
+            <a href="#" id="twitterShare"><img src="{% static 'twitter-icon.png' %}" alt="Twitter"></a>
+            <a href="#" id="whatsappShare"><img src="{% static 'whatsapp-icon.png' %}" alt="Whatsapp"></a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Select Slider Elements
+  const sliderWrapper = document.querySelector('.slider-wrapper');
+  const slides = document.querySelectorAll('.slide');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  
+  let currentIndex = 0;
+  
+  // Function to Display the Slide at the Current Index
+  function showSlide(index) {
+      sliderWrapper.style.transform = `translateX(${-index * 100}%)`;
+  }
+  
+  // Event Listener for Previous Button
+  prevBtn.addEventListener('click', () => {
+      currentIndex = (currentIndex > 0) ? currentIndex - 1 : slides.length - 1;
+      showSlide(currentIndex);
+  });
+  
+  // Event Listener for Next Button
+  nextBtn.addEventListener('click', () => {
+      currentIndex = (currentIndex < slides.length - 1) ? currentIndex + 1 : 0;
+      showSlide(currentIndex);
+  });
+</script>
+
+{% endblock %}

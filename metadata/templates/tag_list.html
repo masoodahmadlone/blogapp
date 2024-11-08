@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %} 
+
+<h2>Posts with tag: {{ tag.name }}</h2>
+{% for post in posts %}
+    <h3>{{ post.title }}</h3>
+    <p>{{ post.content }}</p>
+    <!-- Display other post details -->
+{% empty %}
+    <p>No posts found with this tag.</p>
+{% endfor %}
+
+<a href="{% url 'blog:tag_list' %}">Back to tag list</a>  <!-- Added link to tag list -->
+
+{% endblock %}
